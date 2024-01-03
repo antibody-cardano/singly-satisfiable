@@ -1,0 +1,13 @@
+{
+  "name": "singly-satisfiable",
+  "module": "index.ts",
+  "type": "module",
+  "scripts": {
+    "build": "aiken build"
+  },
+  "devDependencies": {},
+  "peerDependencies": {},
+  "dependencies": {
+    "translucent-cardano": "^0.0.4"
+  }
+}
