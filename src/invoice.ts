@@ -1,5 +1,5 @@
 // import { Invoice, InvoiceBody, Output } from './types'
-import { Data, C, Assets, fromHex } from 'translucent-cardano'
+import { Data, C, Assets, fromHex, toHex } from 'translucent-cardano'
 import * as plutus from '../plutus'
 import { Invoice, Output, Value } from './types'
 import { blake2b } from '@noble/hashes/blake2b'
@@ -39,6 +39,23 @@ export function encodeAddress(
   }
 }
 
+export function decodeCredential(
+  cred: Output['address']['paymentCredential'],
+): C.StakeCredential {
+  if ('VerificationKeyCredential' in cred) {
+    return C.StakeCredential.from_keyhash(C.Ed25519KeyHash.from_hex(cred.VerificationKeyCredential[0]))
+  } else {
+    return C.StakeCredential.from_scripthash(C.ScriptHash.from_hex(cred.ScriptCredential[0]))
+  }
+}
+
+export function decodeAddress(
+  network: number,
+  address: Output['address'],
+): string {
+  return C.BaseAddress.new(network, decodeCredential(address.paymentCredential), decodeCredential(address.stakeCredential!.Inline![0])).to_address().to_bech32()
+}
+
 export function encodeAssets(assets: Assets): Value {
   const map: Map<string, Map<string, bigint>> = new Map([
     ['', new Map([['', 0n]])],
@@ -62,6 +79,21 @@ export function encodeAssets(assets: Assets): Value {
     }
   }
   return map
+}
+
+export function decodeAssets(map: Value): Assets{
+  const assets: Assets = {}
+  for (const [policy, policyMap] of map) {
+    for (const [assetName, quantity] of policyMap) {
+      if (policy === '') {
+        assets['lovelace'] = quantity
+      } else {
+        const asset = policy + assetName
+        assets[asset] = quantity
+      }
+    }
+  }
+  return assets
 }
 
 export function adjustMinAda(
