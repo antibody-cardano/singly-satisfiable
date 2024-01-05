@@ -16,7 +16,6 @@ type Datum {
 }
 
 type Redeemer {
-  New
   Insert {
     onto: ByteArray,
     insert: ByteArray,
@@ -24,6 +23,7 @@ type Redeemer {
     invoice: Invoice,
     pointer: ByteArray,
   }
+  New
 }
 
 fn valid_listitem(
@@ -66,7 +66,6 @@ validator(genesis_utxo: OutputReference) {
       purpose: Mint(own_pol),
     } = ctx
     when r is {
-      New -> list.any(inputs, fn(inp) { inp.output_reference == genesis_utxo })
       Insert { onto, insert, invoice, output_idx, pointer } -> {
         expect [(lock_tkn, 1)] =
           mint
@@ -93,6 +92,7 @@ validator(genesis_utxo: OutputReference) {
           lock_tkn == "",
         }
       }
+      New -> list.any(inputs, fn(inp) { inp.output_reference == genesis_utxo })
     }
   }
 }
